@@ -92,4 +92,5 @@ def delete_chat(name):
     return jsonify({"error": "Chat not found"}), 404
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5050)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5050)), debug=True)
+

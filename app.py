@@ -1,96 +1,152 @@
 import os
-import json
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect
 from dotenv import load_dotenv
 import requests
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
 
+# Load environment variables
 load_dotenv()
+
+# Initialize Flask app
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-CONVO_DIR = "conversations"
+# Firebase credentials and initialization
+cred = credentials.Certificate("serviceAccount.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+convo_collection = db.collection("conversations")
 
-if not os.path.exists(CONVO_DIR):
-    os.makedirs(CONVO_DIR)
+# ------------------------ Core Logic ------------------------
 
-def get_convo_path(name):
-    return os.path.join(CONVO_DIR, f"{name}.json")
+def choose_model(message=None, is_image=False):
+    if is_image:
+        return "llama-3.2-90b-vision-preview"
+    if message:
+        msg = message.lower()
+        if any(x in msg for x in ["prove", "derive", "explain", "why", "therefore", "if", "then", "analyze"]):
+            return "deepseek-r1-distill-llama-70b"
+        elif len(message.split()) > 100 or any(x in msg for x in ["essay", "write a story", "long"]):
+            return "meta-llama/llama-4-maverick-17b-128e-instruct"
+        elif any(x in msg for x in ["code", "debug", "python", "function", "algorithm", "compile", "error"]):
+            return "mistral-saba-24b"
+    return "llama3-70b-8192"
 
-def load_conversation(name):
-    path = get_convo_path(name)
-    return json.load(open(path)) if os.path.exists(path) else []
+def load_conversation(user_id, name):
+    doc = convo_collection.document(user_id).collection("chats").document(name).get()
+    return doc.to_dict().get("messages", []) if doc.exists else []
 
-def save_conversation(name, messages):
-    path = get_convo_path(name)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(messages, f, indent=2)
+def save_conversation(user_id, name, messages):
+    convo_collection.document(user_id).collection("chats").document(name).set({"messages": messages})
 
-def query_groq(messages):
+def delete_conversation(user_id, name):
+    convo_collection.document(user_id).collection("chats").document(name).delete()
+
+def list_all_chats(user_id):
+    return [doc.id for doc in convo_collection.document(user_id).collection("chats").stream()]
+
+def query_groq(messages, is_image=False, image_data=None):
+    user_message = messages[-1]["content"] if messages else ""
+    model = choose_model(message=user_message, is_image=is_image)
+
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}",
         "Content-Type": "application/json"
     }
-    data = {
-        "model": "llama3-70b-8192",
-        "messages": messages
-    }
-    response = requests.post(GROQ_API_URL, headers=headers, json=data)
-    response.raise_for_status()
-    return response.json()["choices"][0]["message"]["content"]
 
-@app.route("/api/chat", methods=["POST"])
-def create_chat():
-    data = request.get_json()
-    name = data.get("name")
-    if not name:
-        return jsonify({"error": "Chat name is required"}), 400
+    if is_image and image_data:
+        data = {
+            "model": model,
+            "messages": [{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": user_message},
+                    {"type": "image_url", "image_url": {"url": image_data}}
+                ]
+            }]
+        }
+    else:
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": user_message}]
+        }
 
-    convo = load_conversation(name)
-    if convo:  # Chat already exists
-        return jsonify({"error": "Chat already exists"}), 400
+    try:
+        response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+    except requests.exceptions.HTTPError as e:
+        print("Groq API error:", e.response.text)
+        return f"Error: {e.response.text}"
 
-    save_conversation(name, [])  # Create an empty conversation
-    return jsonify({"message": "Chat created successfully", "name": name})
+def verify_token(id_token):
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        return decoded_token['uid']
+    except Exception as e:
+        print(f"Token verification failed: {e}")
+        return None
+
+# ------------------------ Routes ------------------------
 
 @app.route("/")
 def index():
+    user_id = request.cookies.get('user_id')
+    if not user_id:
+        return redirect("/login")
     return render_template("index.html")
+
+@app.route("/login")
+def login_page():
+    return render_template("login.html")
+
+@app.route("/api/login", methods=["POST"])
+def login():
+    id_token = request.json.get("id_token")
+    user_id = verify_token(id_token)
+
+    if user_id is None:
+        return jsonify({"error": "Invalid token"}), 401
+
+    response = jsonify({"message": f"Logged in as {user_id}", "user_id": user_id})
+    response.set_cookie('user_id', user_id, httponly=True)
+    return response
+
+@app.route("/api/chat", methods=["POST"])
+def create_chat():
+    user_id = request.cookies.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    chat_name = data.get("chat_name")
+    user_message = data.get("message")
+    image_url = data.get("image_url", None)
+
+    if not chat_name or not user_message:
+        return jsonify({"error": "Chat name and message required"}), 400
+
+    existing_messages = load_conversation(user_id, chat_name)
+    existing_messages.append({"role": "user", "content": user_message})
+
+    ai_response = query_groq(existing_messages, is_image=bool(image_url), image_data=image_url)
+    existing_messages.append({"role": "assistant", "content": ai_response})
+
+    save_conversation(user_id, chat_name, existing_messages)
+
+    return jsonify({"response": ai_response})
 
 @app.route("/api/chats", methods=["GET"])
 def list_chats():
-    return jsonify([f.replace(".json", "") for f in os.listdir(CONVO_DIR) if f.endswith(".json")])
+    user_id = request.cookies.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
 
-@app.route("/api/chat/<name>", methods=["GET"])
-def get_chat(name):
-    return jsonify(load_conversation(name))
+    chat_names = list_all_chats(user_id)
+    return jsonify({"chats": chat_names})
 
-@app.route("/api/chat/<name>", methods=["POST"])
-def send_message(name):
-    user_msg = request.json.get("message")
-    if not user_msg:
-        return jsonify({"error": "Empty message"}), 400
-
-    convo = load_conversation(name)
-    convo.append({"role": "user", "content": user_msg})
-
-    try:
-        bot_reply = query_groq(convo)
-    except Exception as e:
-        bot_reply = f"Error: {e}"
-
-    convo.append({"role": "assistant", "content": bot_reply})
-    save_conversation(name, convo)
-    return jsonify({"role": "assistant", "content": bot_reply})
-
-@app.route("/conversations/<name>.json", methods=["DELETE"])
-def delete_chat(name):
-    path = get_convo_path(name)
-    if os.path.exists(path):
-        os.remove(path)
-        return '', 204
-    return jsonify({"error": "Chat not found"}), 404
+# ------------------------ Main Entry --------
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5050)), debug=True)
+    app.run(host="0.0.0.0", port=5050, debug=True)
 

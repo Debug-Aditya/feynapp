@@ -1,0 +1,233 @@
+/* Global Styles */
+body {
+  margin: 0;
+  padding: 0;
+  background: #1e1e2f;
+  font-family: 'Segoe UI', sans-serif;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#chatsView, #terminalView {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Top Bar */
+.top-bar {
+  position: absolute;
+  top: 0;
+  width: 90vw;
+  max-width: 1080px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px;
+  color: white;
+}
+
+.bar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.bar-tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.tab-button {
+  padding: 10px;
+  background-color: transparent;
+  border: 1px solid #fff;
+  border-radius: 5px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tab-button:hover {
+  background-color: #444;
+}
+
+#user-info {
+  display: flex;
+  align-items: center;
+}
+
+/* Chat Container */
+.chat-container {
+  width: 90vw;
+  height: 70vh;
+  max-width: 1080px;
+  max-height: 700px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Chat Header */
+.chat-header {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 16px;
+  background-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+  border-radius: 50px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+}
+
+/* Chat Messages */
+.chat-messages {
+  padding: 2vh 3vw;
+  overflow-y: auto;
+  flex: 1;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-message {
+  max-width: 75%;
+  margin: 1vh 2vw;
+  padding: 2vh 2vw;
+  border-radius: 18px;
+  line-height: 1.4;
+  font-size: 1rem;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  animation: fadeIn 0.25s ease-in;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.user-msg {
+  align-self: flex-end;
+  background-color: #2d333b;
+  color: #c9d1d9;
+  border-radius: 16px 16px 4px 16px;
+  text-align: right;
+}
+
+.bot-msg {
+  align-self: flex-start;
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-radius: 16px 16px 16px 4px;
+  text-align: left;
+}
+
+/* Chat Input */
+.chat-input {
+  position: absolute;
+  bottom: 2vh;
+  left: 9%;
+  width: 82%;
+  display: flex;
+  padding: 16px;
+  background-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+  border-radius: 50px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.chat-input input {
+  flex-grow: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: 50px;
+  margin-right: 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  min-width: 30%;
+}
+
+.chat-input button {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 50px;
+  background-color: #4c8bf5;
+  color: white;
+  cursor: pointer;
+}
+
+/* Add Chat Bar */
+.add-chat-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.add-chat-bar input {
+  width: 70%;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.add-chat-bar button {
+  background-color: #4c8bf5;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Button hover effects */
+button:hover {
+  background-color: #357ae8;
+}
+
+button:focus {
+  outline: none;
+}
+
+/* Hidden Elements */
+.hidden {
+  display: none;
+}
+
+/* Google SignIn button styles */
+.google-login-btn {
+  background-color: #4285F4;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.3s ease;
+}
+
+.google-login-btn:hover {
+  background-color: #357ae8;
+}
+
+.google-login-btn:focus {
+  outline: none;
+}

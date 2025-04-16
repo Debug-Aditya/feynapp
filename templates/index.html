@@ -3,424 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <title>FEYN Chat Interface</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #1e1e2f;
-      font-family: 'Segoe UI', sans-serif;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .chat-container {
-      width: 1080px;
-      height: 700px;
-      top: 10px;
-      margin-top: 70px;
-      bottom: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .chat-header {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: auto;
-      padding: 16px;
-      background-color: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-      border-radius: 50px;
-      text-align: center;
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: white;
-    }
-
-    #terminalView {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      height: 100%;
-    }
-
-    .chat-messages {
-      padding: 20px;
-      overflow-y: auto;
-      flex: none;
-      height: calc(100% - 88px);
-      padding-bottom: 80px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chat-message {
-      max-width: 75%;
-      margin: 8px 12px;
-      padding: 10px 14px;
-      border-radius: 18px;
-      line-height: 1.4;
-      font-size: 15px;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-      animation: fadeIn 0.25s ease-in;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .user-msg {
-      align-self: flex-end;
-      background-color: #2d333b;
-      color: #c9d1d9;
-      border-radius: 16px 16px 4px 16px;
-      text-align: right;
-    }
-
-    .bot-msg {
-      align-self: flex-start;
-      background-color: #161b22;
-      color: #c9d1d9;
-      border-radius: 16px 16px 16px 4px;
-      text-align: left;
-      white-space: normal; /* Collapse whitespace and newlines */
-      word-wrap: break-word; /* Ensure long words break properly */
-      margin: 4px 8px; /* Reduce margin */
-      padding: 8px 12px; /* Adjust padding */
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .chat-input {
-      position: absolute;
-      bottom: 20px;
-      left: 9%;
-      width: 80%;
-      display: flex;
-      padding: 16px;
-      background-color: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
-      border-radius: 50px;
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 50px;
-      margin-right: 12px;
-      background-color: rgba(255, 255, 255, 0.1);
-      color: white;
-    }
-
-    .chat-input input:focus {
-      outline: none;
-    }
-
-    .chat-input button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 50px;
-      background-color: #4c8bf5;
-      color: white;
-      cursor: pointer;
-    }
-
-    .top-bar {
-      position: absolute;
-      top: 0;
-      width: 1080px;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(12px);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 24px;
-      border-radius: 40px;
-      margin-top: 20px;
-      z-index: 999;
-      color: white;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .bar-title {
-      font-size: 1.3rem;
-      font-weight: bold;
-    }
-
-    .bar-tabs {
-      display: flex;
-      gap: 12px;
-    }
-
-    .tab-button {
-      background: #21262d;
-      color: #c9d1d9;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .tab-button:hover {
-      background: #30363d;
-    }
-
-    .add-chat-bar {
-      position: absolute;
-      bottom: 50px;
-      left: 38%;
-      width: 21%;
-      display: flex;
-      padding: 16px;
-      background-color: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
-      border-radius: 50px;
-      align-items: center;
-    }
-
-    .add-chat-bar input {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 500px;
-      background-color: rgba(255, 255, 255, 0.1);
-      color: white;
-      margin-right: 10px;
-    }
-
-    .add-chat-bar button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 500px;
-      background-color: #4c8bf5;
-      color: white;
-      cursor: pointer;
-    }
-
-    #chatsContent {
-      flex: 1;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .chat-tile {
-      background-color: rgba(255, 255, 255, 0.1);
-      margin-top: 100px;
-      padding: 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 200px;
-      text-align: center;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    body.dark-mode {
-      background-color: #0d1117;
-      color: #c9d1d9;
-    }
-
-    input, button {
-      background: #21262d;
-      color: #c9d1d9;
-      border: 1px solid #30363d;
-      padding: 8px;
-      border-radius: 6px;
-    }
-  </style>
+  <link rel="stylesheet" href="../static/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
 </head>
 <body>
-  <div class="top-bar">
-    <div class="bar-title">F.E.Y.N Console</div>
-    <div class="bar-tabs">
-      <button class="tab-button" onclick="showChatsTab()">Chats</button>
-      <button class="tab-button" onclick="showTerminalTab()">Terminal</button>
+<div class="top-bar">
+  <div class="bar-title">F.E.Y.N Console</div>
+  <div class="bar-tabs">
+    <button class="tab-button" onclick="showChatsTab()">Chats</button>
+    <button class="tab-button" onclick="showTerminalTab()">Terminal</button>
+    <div id="user-info">
+      <!-- Sign Out Button will be shown only when the user is logged in -->
+      <button id="signOutBtn" onclick="signOut()" style="display:none;">Sign Out</button>
     </div>
   </div>
+</div>
 
-  <div class="chat-container">
-    <div class="chat-header"><center>F.E.Y.N Assistant</center></div>
-
-    <!-- CHATS VIEW -->
-    <div id="chatsView">
-      <div class="add-chat-bar">
-        <input type="text" id="newChatName" placeholder="New chat name..." onkeydown="handleNewChatKeyPress(event)">
-        <button onclick="createNewChat()">+</button>
-      </div>
-      <div id="chatsContent"></div>
+<div class="chat-container">
+  <div class="chat-header">F.E.Y.N Assistant</div>
+  <!-- CHATS VIEW -->
+  <div id="chatsView" class="hidden">
+    <div class="add-chat-bar">
+      <label for="newChatName"><input type="text" id="newChatName" placeholder="New chat name..." onkeydown="handleNewChatKeyPress(event)"></label>
+      <button onclick="createNewChat()">+</button>
     </div>
-
-    <!-- TERMINAL VIEW -->
-    <div id="terminalView" class="hidden">
-      <div class="chat-messages" id="messages"></div>
-      <div class="chat-input" id="chat-input">
-        <input type="text" id="userInput" placeholder="Enter your message..." onkeydown="handleKeyPress(event)" />
-        <button onclick="sendMessage()">Send</button>
-      </div>
-    </div>
+    <div id="chatsContent"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
-  <script>
-    let currentChatId = null;
+  <!-- TERMINAL VIEW -->
+  <div id="terminalView" class="hidden">
+    <div class="chat-messages" id="messages"></div>
+    <div class="chat-input" id="chat-input">
+      <label><input type="text" id="userInput" placeholder="Enter your message..." onkeydown="handleKeyPress(event)" /></label>
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+</div>
 
-    // Load all chats when page loads
-    window.onload = async () => {
-        await loadChatList();
-        document.getElementById('chat-input').classList.add('hidden');
-    };
-
-    async function loadChatList() {
-        const res = await fetch('/api/chats');
-        const chats = await res.json();
-
-        const chatsContent = document.getElementById('chatsContent');
-        chatsContent.innerHTML = '';
-
-        chats.forEach(chat => {
-            const chatTile = document.createElement('div');
-            chatTile.className = 'chat-tile';
-            chatTile.textContent = chat;
-            chatTile.onclick = () => {
-                currentChatId = chat;
-                showTerminalTab();
-                loadChatHistory(currentChatId);
-            };
-            chatsContent.appendChild(chatTile);
-        });
-    }
-
-    function showChatsTab() {
-        document.getElementById('chatsView').classList.remove('hidden');
-        document.getElementById('terminalView').classList.add('hidden');
-        document.getElementById('chat-input').classList.add('hidden');
-        document.getElementById('messages').innerHTML = '';
-    }
-
-    function showTerminalTab() {
-        if (!currentChatId) return;
-        document.getElementById('chatsView').classList.add('hidden');
-        document.getElementById('terminalView').classList.remove('hidden');
-        document.getElementById('chat-input').classList.remove('hidden');
-    }
-
-    async function loadChatHistory(chatId) {
-        const res = await fetch(`/api/chat/${chatId}`);
-        const messages = await res.json();
-
-        const chatBox = document.getElementById('messages');
-        chatBox.innerHTML = '';
-
-        messages.forEach(msg => {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'chat-message ' + (msg.role === 'user' ? 'user-msg' : 'bot-msg');
-            const md = window.markdownit();
-            msgDiv.innerHTML = md.render(msg.role === 'user' ? "You: " + msg.content : "FEYN: " + msg.content);
-            chatBox.appendChild(msgDiv);
-        });
-
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    async function createNewChat() {
-        const input = document.getElementById('newChatName');
-        const name = input.value.trim();
-        if (!name) return;
-
-        const res = await fetch(`/api/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name })
-        });
-
-        if (res.ok) {
-            input.value = '';
-            await loadChatList(); // Reload the chat list to display the new tile
-        } else {
-            const error = await res.json();
-            alert(error.error || "Failed to create chat");
-        }
-    }
-
-    function handleNewChatKeyPress(event) {
-        if (event.key === 'Enter') createNewChat();
-    }
-
-    function handleKeyPress(event) {
-        if (event.key === 'Enter') sendMessage();
-    }
-
-    async function sendMessage() {
-    const input = document.getElementById('userInput');
-    const message = input.value.trim();
-    if (!message || !currentChatId) return;
-
-    const chatBox = document.getElementById('messages');
-
-    // Display user message
-    const userMsg = document.createElement('div');
-    userMsg.className = 'chat-message user-msg';
-    userMsg.textContent = "You: " + message;
-    chatBox.appendChild(userMsg);
-
-    // Display placeholder for bot
-    const botMsg = document.createElement('div');
-    botMsg.className = 'chat-message bot-msg';
-    botMsg.textContent = "FEYN: Thinking...";
-    chatBox.appendChild(botMsg);
-
-    input.value = '';
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    try {
-        const res = await fetch(`/api/chat/${currentChatId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message })
-        });
-
-        const data = await res.json();
-        console.log("Raw API Response:", data.content);
-
-        // Use Markdown-it with the `breaks` option enabled
-        const md = window.markdownit({ breaks: true });
-        // Sanitize and collapse excessive whitespace
-        const sanitizedContent = data.content
-            .replace(/\n{3,}/g, '\n\n') // Replace 3+ newlines with 2 newlines
-            .replace(/\s{2,}/g, ' ')   // Replace multiple spaces with a single space
-            .trim();                   // Trim leading and trailing whitespace
-        botMsg.innerHTML = "FEYN: " + md.render(sanitizedContent);
-
-        chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (err) {
-        console.error("API Error:", err);
-        botMsg.textContent = "FEYN: Sorry, I couldn't reach the server.";
-    }
-}
-    
-  </script>
+<script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+<script src="../static/script.js"></script>
 </body>
 </html>
